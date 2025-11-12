@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package example;
+
+message Address {
+    string street = 1;
+    string city = 2;
+    string zip_code = 3;
+}
+
+message Person {
+    string name = 1;
+    int32 age = 2;
+    string email = 3;
+    optional string phone = 4;
+    Address address = 5;
+    repeated string hobbies = 6;
+    bool is_active = 7;
+    optional double salary = 8;
+    repeated Contact contacts = 9;
+}
+
+message Contact {
+    bytes id = 1;
+    string type = 2;
+    string value = 3;
+}

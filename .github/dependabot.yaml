@@ -1,0 +1,22 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "/"
+  commit-message:
+    prefix: "fix(python dependencies): "
+  schedule:
+    interval: weekly
+  groups:
+    python-packages:
+      patterns:
+        - "*"
+- package-ecosystem: github-actions
+  directory: "/"
+  commit-message:
+    prefix: "fix(gha dependencies): "
+  schedule:
+    interval: weekly
+  groups:
+    github-actions:
+      patterns:
+        - "actions/*"

@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from google.protobuf.internal.encoder import _EncodeVarint, _EncodeSignedVarint
+from google.protobuf.internal.encoder import _EncodeVarint # type: ignore
+from google.protobuf.internal.decoder import _DecodeVarint # type: ignore
 from google.protobuf.internal.wire_format import WIRETYPE_VARINT, WIRETYPE_FIXED64, WIRETYPE_LENGTH_DELIMITED, WIRETYPE_FIXED32
 from typing import get_args, get_origin, Union
 from io import BytesIO
@@ -52,14 +53,6 @@ class ProtoModel(BaseModel):
     
     # Handle list types
     if origin is list:
-      inner_type = get_args(annotation)[0]
-      # For repeated fields, encode the length-delimited data
-      inner_buffer = BytesIO()
-      for item in value:
-        self._encode_value(item, inner_type, inner_buffer)
-      data = inner_buffer.getvalue()
-      _EncodeVarint(output.write, len(data))
-      output.write(data)
       return
     
     if annotation == int:
@@ -100,48 +93,104 @@ class ProtoModel(BaseModel):
       if not field.is_required() and value == field.default:
         field_number += 1
         continue
-      
+
       wt = self.get_wiretype_for_field(field)
       key = (field_number << 3) | wt
-      _EncodeVarint(output.write, key)
-      
-      # Encode the value
-      self._encode_value(value, field.annotation, output)
+
+      if get_origin(field.annotation) is list:
+        inner_type = get_args(field.annotation)[0]
+        for item in value:
+          _EncodeVarint(output.write, key)
+          self._encode_value(item, inner_type, output)
+      else:
+        _EncodeVarint(output.write, key)
+        self._encode_value(value, field.annotation, output)
       
       field_number += 1
     
     return output.getvalue()
+  
+  @classmethod
+  def _decode_varint(cls, stream: BytesIO) -> int:
+    """Decode a varint from the stream."""
+    result = 0
+    shift = 0
+    while True:
+      byte_data = stream.read(1)
+      if not byte_data:
+        break
+      byte = byte_data[0]
+      result |= (byte & 0x7f) << shift
+      if not (byte & 0x80):
+        break
+      shift += 7
+    return result
 
-
-# Example usage
-if __name__ == "__main__":
-  class Address(ProtoModel):
-    street: str
-    city: str
-    zip_code: int
-  
-  class Person(ProtoModel):
-    id: int
-    name: str
-    email: str | None = None
-    age: int
-    salary: float
-    is_active: bool
-    address: Address | None = None
-    tags: list[str] | None = None
-  
-  address = Address(street="123 Main St", city="Springfield", zip_code=12345)
-  person = Person(
-    id=42,
-    name="Alice",
-    email="alice@example.com",
-    age=30,
-    salary=75000.50,
-    is_active=True,
-    address=address,
-    tags=["engineer", "python"]
-  )
-  
-  proto_bytes = person.model_dump_proto()
-  print(f"Serialized bytes: {proto_bytes.hex()}")
-  print(f"Length: {len(proto_bytes)} bytes")
+  @classmethod
+  def model_validate_proto(cls, data: bytes):
+    """Deserialize protobuf bytes into the Pydantic model."""
+    stream = BytesIO(data)
+    field_values = {}
+    
+    while stream.tell() < len(data):
+      # Read field tag
+      tag = cls._decode_varint(stream)
+      field_number = tag >> 3
+      wire_type = tag & 0x07
+      
+      # Get field name from field number (1-indexed)
+      field_names = list(cls.model_fields.keys())
+      if field_number - 1 >= len(field_names):
+        raise ValueError(f"Unknown field number: {field_number}")
+      
+      field_name = field_names[field_number - 1]
+      field = cls.model_fields[field_name]
+      annotation = field.annotation
+      origin = get_origin(annotation)
+      
+      # Unwrap Optional
+      if origin is Union or origin is types.UnionType:
+        anns = get_args(annotation)
+        anns = [ann for ann in anns if ann is not type(None)]
+        if len(anns) == 1:
+          annotation = anns[0]
+          origin = get_origin(annotation)
+      
+      # Parse based on wire type
+      if wire_type == WIRETYPE_VARINT:
+        value = cls._decode_varint(stream)
+        if annotation == bool:
+          value = bool(value)
+      elif wire_type == WIRETYPE_FIXED64:
+        value = struct.unpack('<d', stream.read(8))[0]
+      elif wire_type == WIRETYPE_LENGTH_DELIMITED:
+        length = cls._decode_varint(stream)
+        data_bytes = stream.read(length)
+        
+        if annotation == str:
+          value = data_bytes.decode('utf-8')
+        elif annotation == bytes:
+          value = data_bytes
+        elif origin is list:
+          # Nested message or repeated field
+          inner_type = get_args(annotation)[0]
+          if isinstance(inner_type, type) and issubclass(inner_type, ProtoModel):
+            value = inner_type.model_validate_proto(data_bytes)
+          else:
+            value = data_bytes
+        elif isinstance(annotation, type) and issubclass(annotation, ProtoModel):
+          value = annotation.model_validate_proto(data_bytes)
+        else:
+          value = data_bytes
+      else:
+        raise ValueError(f"Unsupported wire type: {wire_type}")
+      
+      # Handle repeated fields
+      if origin is list:
+        if field_name not in field_values:
+          field_values[field_name] = []
+        field_values[field_name].append(value)
+      else:
+        field_values[field_name] = value
+    
+    return cls(**field_values)
