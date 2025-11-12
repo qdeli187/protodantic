@@ -170,7 +170,7 @@ Deserialize protobuf bytes into a model instance.
 
 ## 🗺 Roadmap
 
-### Items 
+### Items
 
 - [x] Basic scalar types (`int`, `float`, `bool`, `str`, `bytes`)
 - [x] Nested messages (ProtoModel instances)
@@ -212,4 +212,3 @@ Contributions are welcome! Please feel free to submit a Pull Request. Areas wher
 ## 📄 License
 
 This project is licensed under the Apache 2.0 License - see the LICENSE file for details.
-

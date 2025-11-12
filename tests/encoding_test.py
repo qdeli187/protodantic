@@ -1,7 +1,13 @@
-from protodantic.base import ProtoModel
-from .proto.test_pb2 import Person as PBPerson, Address as PBAddress, Contact as PBContact
+from __future__ import annotations
 
 import pytest
+
+from protodantic.base import ProtoModel
+
+from .proto.test_pb2 import Address as PBAddress
+from .proto.test_pb2 import Contact as PBContact
+from .proto.test_pb2 import Person as PBPerson
+
 
 class Address(ProtoModel):
     street: str
@@ -37,7 +43,7 @@ def pb_person(pb_address, pb_contact):
     person = PBPerson(
         name="John Doe",
         age=30,
-        email="test@exmaple.com",
+        email="test@example.com",
         address=pb_address,
         hobbies=["reading", "gaming"],
         is_active=True,
@@ -59,7 +65,7 @@ def person(address, contact):
     person = Person(
         name="John Doe",
         age=30,
-        email="test@exmaple.com",
+        email="test@example.com",
         address=address,
         hobbies=["reading", "gaming"],
         is_active=True,

@@ -36,4 +36,3 @@ jobs:
         run: poetry run pytest
       - name: 🏗 Build
         run: poetry build
-      

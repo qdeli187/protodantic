@@ -58,4 +58,3 @@ jobs:
           echo "Publishing version: ${{ needs.release-please.outputs.tag_name }}"
           poetry config pypi-token.pypi $PYPI_API_TOKEN
           poetry publish
-      
