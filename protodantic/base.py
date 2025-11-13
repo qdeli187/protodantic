@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import struct
 import types
+from enum import IntEnum
 from io import BytesIO
 from typing import Union, get_args, get_origin
 
@@ -35,7 +36,7 @@ class ProtoModel(BaseModel):
     if origin is list:
       return WIRETYPE_LENGTH_DELIMITED
 
-    if annotation in {int, bool}:
+    if annotation in {int, bool} or issubclass(annotation, IntEnum):
         return WIRETYPE_VARINT  # varint
     elif annotation == float:
         return WIRETYPE_FIXED64  # 64-bit
@@ -64,6 +65,8 @@ class ProtoModel(BaseModel):
 
     if annotation == int:
       _EncodeVarint(output.write, value)
+    elif issubclass(annotation, IntEnum):
+      _EncodeVarint(output.write, value.value)
     elif annotation == bool:
       _EncodeVarint(output.write, 1 if value else 0)
     elif annotation == float:

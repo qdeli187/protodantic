@@ -1,0 +1,25 @@
+# mkdocs.yml
+site_name: protodantic
+theme:
+  name: shadcn
+  show_title: true # show the title in the top bar
+  show_stargazers: true # show the stargazers in the top bar
+  pygments_style: # default styles
+    light: shadcn-light
+    dark: dracula
+  icon: heroicons:rocket-launch # use the shadcn svg if not defined
+  topbar_sections: false # NEW!
+  show_datetime: false
+markdown_extensions:
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - codehilite
+  - admonition
+plugins:
+  - search
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Roadmap: roadmap.md
+  - Contributing: contributing.md

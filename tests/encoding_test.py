@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from enum import Enum, IntEnum
+
 import pytest
 
 from protodantic.base import ProtoModel
@@ -8,6 +10,12 @@ from .proto.test_pb2 import Address as PBAddress
 from .proto.test_pb2 import Contact as PBContact
 from .proto.test_pb2 import Person as PBPerson
 
+
+class Status(IntEnum):
+    UNKNOWN = 0
+    ACTIVE = 1
+    INACTIVE = 2
+    PENDING = 3
 
 class Address(ProtoModel):
     street: str
@@ -29,6 +37,7 @@ class Person(ProtoModel):
     is_active: bool
     salary: float | None = None
     contacts : list[Contact] = []
+    status: Status = Status.UNKNOWN
 
 @pytest.fixture
 def pb_contact():
@@ -48,7 +57,8 @@ def pb_person(pb_address, pb_contact):
         hobbies=["reading", "gaming"],
         is_active=True,
         salary=55000.50,
-        contacts=[pb_contact]
+        contacts=[pb_contact],
+        status=Status.ACTIVE.value
     )
     return person
 
@@ -70,7 +80,8 @@ def person(address, contact):
         hobbies=["reading", "gaming"],
         is_active=True,
         salary=55000.50,
-        contacts=[contact]
+        contacts=[contact],
+        status=Status.ACTIVE
     )
     return person
 
