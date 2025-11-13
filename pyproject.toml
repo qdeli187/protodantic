@@ -26,3 +26,7 @@ dev = [
 test = [
     "pytest (>=9.0.1,<10.0.0)"
 ]
+docs = [
+    "mkdocs-shadcn (>=0.9.7,<0.10.0)",
+    "pymdown-extensions (>=10.17.1,<11.0.0)"
+]
