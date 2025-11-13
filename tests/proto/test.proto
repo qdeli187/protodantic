@@ -2,6 +2,13 @@ syntax = "proto3";
 
 package example;
 
+enum Status {
+    UNKNOWN = 0;
+    ACTIVE = 1;
+    INACTIVE = 2;
+    PENDING = 3;
+}
+
 message Address {
     string street = 1;
     string city = 2;
@@ -18,6 +25,7 @@ message Person {
     bool is_active = 7;
     optional double salary = 8;
     repeated Contact contacts = 9;
+    Status status = 10;
 }
 
 message Contact {

@@ -9,8 +9,18 @@ from typing import Union as _Union
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf.internal import containers as _containers
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 
 DESCRIPTOR: _descriptor.FileDescriptor
+
+class Status(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    ACTIVE: _ClassVar[Status]
+    INACTIVE: _ClassVar[Status]
+    PENDING: _ClassVar[Status]
+ACTIVE: Status
+INACTIVE: Status
+PENDING: Status
 
 class Address(_message.Message):
     __slots__ = ("street", "city", "zip_code")
@@ -23,7 +33,7 @@ class Address(_message.Message):
     def __init__(self, street: _Optional[str] = ..., city: _Optional[str] = ..., zip_code: _Optional[str] = ...) -> None: ...
 
 class Person(_message.Message):
-    __slots__ = ("name", "age", "email", "phone", "address", "hobbies", "is_active", "salary", "contacts")
+    __slots__ = ("name", "age", "email", "phone", "address", "hobbies", "is_active", "salary", "contacts", "status")
     NAME_FIELD_NUMBER: _ClassVar[int]
     AGE_FIELD_NUMBER: _ClassVar[int]
     EMAIL_FIELD_NUMBER: _ClassVar[int]
@@ -33,6 +43,7 @@ class Person(_message.Message):
     IS_ACTIVE_FIELD_NUMBER: _ClassVar[int]
     SALARY_FIELD_NUMBER: _ClassVar[int]
     CONTACTS_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
     name: str
     age: int
     email: str
@@ -42,7 +53,8 @@ class Person(_message.Message):
     is_active: bool
     salary: float
     contacts: _containers.RepeatedCompositeFieldContainer[Contact]
-    def __init__(self, name: _Optional[str] = ..., age: _Optional[int] = ..., email: _Optional[str] = ..., phone: _Optional[str] = ..., address: _Optional[_Union[Address, _Mapping]] = ..., hobbies: _Optional[_Iterable[str]] = ..., is_active: bool = ..., salary: _Optional[float] = ..., contacts: _Optional[_Iterable[_Union[Contact, _Mapping]]] = ...) -> None: ...
+    status: Status
+    def __init__(self, name: _Optional[str] = ..., age: _Optional[int] = ..., email: _Optional[str] = ..., phone: _Optional[str] = ..., address: _Optional[_Union[Address, _Mapping]] = ..., hobbies: _Optional[_Iterable[str]] = ..., is_active: bool = ..., salary: _Optional[float] = ..., contacts: _Optional[_Iterable[_Union[Contact, _Mapping]]] = ..., status: _Optional[_Union[Status, str]] = ...) -> None: ...
 
 class Contact(_message.Message):
     __slots__ = ("id", "type", "value")
