@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://qdeli187.github.io/protodantic/</loc>
+         <loc>https://qdeli187.github.io/protodantic/00_index/</loc>
          <lastmod>2025-11-14</lastmod>
     </url>
     <url>
-         <loc>https://qdeli187.github.io/protodantic/contributing/</loc>
+         <loc>https://qdeli187.github.io/protodantic/01_getting-started/</loc>
          <lastmod>2025-11-14</lastmod>
     </url>
     <url>
-         <loc>https://qdeli187.github.io/protodantic/getting-started/</loc>
+         <loc>https://qdeli187.github.io/protodantic/02_roadmap/</loc>
          <lastmod>2025-11-14</lastmod>
     </url>
     <url>
-         <loc>https://qdeli187.github.io/protodantic/roadmap/</loc>
+         <loc>https://qdeli187.github.io/protodantic/03_contributing/</loc>
          <lastmod>2025-11-14</lastmod>
     </url>
 </urlset>
