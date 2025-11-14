@@ -1,8 +1,7 @@
 ---
 order: 5
+title: Contributing to this project
 ---
-
-# Contributing to this project
 
 Thanks for visiting this page ! We are thankful for your consideration !
 
