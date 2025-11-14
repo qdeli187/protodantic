@@ -17,6 +17,8 @@ Check out the docs [here](https://qdeli187.github.io/protodantic/)
 
 ## 🛠️ Installation
 
+> Package is not released yet
+
 ```bash
 pip install protodantic
 ```
