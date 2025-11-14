@@ -2,6 +2,10 @@
 
 A powerful Pydantic extension that brings **Protocol Buffers** serialization to your Python models. Combine the validation power of Pydantic with the efficiency of protobuf encoding.
 
+Check out the docs [here](https://qdeli187.github.io/protodantic/)
+
+---
+
 ## ✨ Features
 
 - 🔄 **Seamless Integration**: Extend your Pydantic models with protobuf serialization
@@ -77,6 +81,7 @@ assert restored_person == person  # ✅ Perfect match!
 |------|-----------|---------|
 | `int` | Varint | `age: 30` |
 | `bool` | Varint | `is_active: True` |
+| `enum` | Varint |  |
 | `float` | 64-bit | `salary: 55000.50` |
 | `str` | Length-delimited | `name: "John"` |
 | `bytes` | Length-delimited | `id: b'\x01\x02\x03'` |
