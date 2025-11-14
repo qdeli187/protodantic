@@ -3,25 +3,55 @@ site_name: protodantic
 site_url: "https://qdeli187.github.io/protodantic"
 repo_url: "https://github.com/qdeli187/protodantic"
 theme:
-  name: shadcn
-  show_title: false # show the title in the top bar
-  show_stargazers: true # show the stargazers in the top bar
-  pygments_style: # default styles
-    light: shadcn-light
-    dark: dracula
-  icon: heroicons:rocket-launch # use the shadcn svg if not defined
-  topbar_sections: false # NEW!
-  show_datetime: false
+  name: material
+  icon:
+    logo: simple/trpc
+  features:
+    # - navigation.tabs
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    #- toc.integrate
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
 markdown_extensions:
+  - toc:
+      permalink: true
   - def_list
   - pymdownx.tasklist:
       custom_checkbox: true
   - codehilite
   - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
 plugins:
   - search
-# nav:
-#   - Home: index.md
-#   - Getting Started: getting-started.md
-#   - Roadmap: roadmap.md
-#   - Contributing: contributing.md
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Roadmap: roadmap.md
+  - Contributing: contributing.md

@@ -1,9 +1,3 @@
----
-order: 1
----
-
-# Getting Started with Protodantic
-
 Welcome! This hands-on guide will walk you through the core concepts of Protodantic using practical examples. We'll cover basic usage, lists (repeated fields), nested messages, and enums.
 
 ## 📦 Installation
