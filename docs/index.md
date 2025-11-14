@@ -1,3 +1,7 @@
+---
+order: 0
+---
+
 # 🚀 Protodantic
 
 **Bridge the gap between Protocol Buffers and Pydantic validation.**

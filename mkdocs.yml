@@ -1,8 +1,10 @@
 # mkdocs.yml
 site_name: protodantic
+site_url: "https://qdeli187.github.io/protodantic"
+repo_url: "https://github.com/qdeli187/protodantic"
 theme:
   name: shadcn
-  show_title: true # show the title in the top bar
+  show_title: false # show the title in the top bar
   show_stargazers: true # show the stargazers in the top bar
   pygments_style: # default styles
     light: shadcn-light
@@ -18,8 +20,8 @@ markdown_extensions:
   - admonition
 plugins:
   - search
-nav:
-  - Home: index.md
-  - Getting Started: getting-started.md
-  - Roadmap: roadmap.md
-  - Contributing: contributing.md
+# nav:
+#   - Home: index.md
+#   - Getting Started: getting-started.md
+#   - Roadmap: roadmap.md
+#   - Contributing: contributing.md
