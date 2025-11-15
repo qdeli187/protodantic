@@ -18,21 +18,13 @@ dependencies = [
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[dependency-groups]
-dev = [
-    "grpcio (>=1.76.0,<2.0.0)",
-    "grpcio-tools (>=1.76.0,<2.0.0)"
-]
-test = [
-    "pytest (>=9.0.1,<10.0.0)"
-]
-docs = [
-    "mkdocs-shadcn (>=0.9.7,<0.10.0)",
-    "pymdown-extensions (>=10.17.1,<11.0.0)",
-    "mkdocs-material (>=9.7.0,<10.0.0)"
-]
-
 [tool.poetry.group.test.dependencies]
 grpcio = "^1.76.0"
 grpcio-tools = "^1.76.0"
+pytest = "^9.0.1"
+
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "^9.7.0"
+pymdown-extensions = "^10.17.1"
 
