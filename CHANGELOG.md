@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/qdeli187/protodantic/compare/v0.1.0...v0.2.0) (2025-11-15)
+
+
+### Features
+
+* add maps support ([#5](https://github.com/qdeli187/protodantic/issues/5)) ([ecd4f5c](https://github.com/qdeli187/protodantic/commit/ecd4f5cf71072790ae7229da217ef26379b43edb))
+
+
+### Documentation
+
+* update docs ([92a0f5f](https://github.com/qdeli187/protodantic/commit/92a0f5f0ca6c08d7fd5a5277e974fcbe5ad87a4d))
+
 ## 0.1.0 (2025-11-13)
 
 
