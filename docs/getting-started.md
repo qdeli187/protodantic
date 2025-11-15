@@ -284,6 +284,54 @@ assert decoded == person
 
 ---
 
+## 🗺️ Working with Maps
+
+Maps (dictionaries) allow you to store key-value pairs with efficient serialization:
+
+```python
+from protodantic import ProtoModel
+
+class Config(ProtoModel):
+    name: str
+    settings: dict[str, int]
+    metadata: dict[str, str]
+
+# Create an instance with maps
+config = Config(
+    name="app_config",
+    settings={"timeout": 30, "retries": 3, "max_connections": 100},
+    metadata={"version": "1.0", "author": "alice", "environment": "production"}
+)
+
+print(config.settings["timeout"])
+# Output: 30
+
+print(config.metadata["environment"])
+# Output: 'production'
+
+# Serialize and deserialize
+encoded = config.model_dump_proto()
+decoded = Config.model_validate_proto(encoded)
+
+print(decoded.settings)
+# Output: {'timeout': 30, 'retries': 3, 'max_connections': 100}
+
+assert decoded == config
+```
+
+### Key Points about Maps:
+
+- **Type Annotation**: Use `dict[K, V]` to define map fields (keys and values can be primitives or strings)
+- **Key Types**: Supported key types are `str` and `int`
+- **Value Types**: Supported value types are `str`, `int`, `float`, `bytes`, `bool`, and nested `ProtoModel` messages
+- **Validation**: Pydantic validates that the field is actually a dict
+- **Empty Maps**: Empty dicts are allowed by default
+- **Unordered**: Maps are unordered by nature; entries may serialize in different orders
+- **Efficient Encoding**: Maps use protobuf's map field encoding for efficiency
+
+
+---
+
 ## 🔗 Complete Example: Combining Everything
 
 Let's create a real-world example using lists, nested messages, enums, and optional fields together:
