@@ -14,13 +14,11 @@ from google.protobuf.internal.wire_format import (WIRETYPE_FIXED32,
                                                   WIRETYPE_VARINT)
 from pydantic import BaseModel
 
-
 class ProtoModel(BaseModel):
 
   @classmethod
-  def get_wiretype_for_field(cls, field) -> int:
+  def get_wiretype_for_annotation(cls, annotation) -> int:
     """Get the wiretype for a given Pydantic field based on its annotation."""
-    annotation = field.annotation
     origin = get_origin(annotation)
 
     # Handle Optional types
@@ -35,17 +33,22 @@ class ProtoModel(BaseModel):
     # Handle list types
     if origin is list:
       return WIRETYPE_LENGTH_DELIMITED
-
+    # Handle dict types (maps)
+    if origin is dict:
+      return WIRETYPE_LENGTH_DELIMITED
     if annotation in {int, bool} or issubclass(annotation, IntEnum):
         return WIRETYPE_VARINT  # varint
-    elif annotation == float:
+    if annotation == float:
         return WIRETYPE_FIXED64  # 64-bit
-    elif annotation in {str, bytes}:
+    if annotation in {str, bytes}:
         return WIRETYPE_LENGTH_DELIMITED  # length-delimited
-    elif isinstance(annotation, type) and issubclass(annotation, ProtoModel):
+    if isinstance(annotation, type) and issubclass(annotation, ProtoModel):
         return WIRETYPE_LENGTH_DELIMITED  # nested message
-    else:
-        raise ValueError(f"Unsupported field type: {annotation}")
+    raise ValueError(f"Unsupported field type: {annotation}")
+
+  def build_key(self, field_number: int, annotation) -> int:
+    """Build the protobuf key from field number and wire type."""
+    return (field_number << 3) | self.get_wiretype_for_annotation(annotation)
 
   def _encode_value(self, value, annotation, output: BytesIO):
     """Encode a single value based on its type."""
@@ -59,11 +62,12 @@ class ProtoModel(BaseModel):
         annotation = anns[0]
         origin = get_origin(annotation)
 
-    # Handle list types
-    if origin is list:
-      return
-
-    if annotation == int:
+    # Handle list/dict types
+    if origin is list :
+      raise RuntimeError("list[list[T]] or dict[...,list[T]] not supported by protobuf")
+    elif origin is dict:
+      raise RuntimeError("list[dict[T]] or dict[...,dict[T]] not supported by protobuf")
+    elif annotation == int:
       _EncodeVarint(output.write, value)
     elif issubclass(annotation, IntEnum):
       _EncodeVarint(output.write, value.value)
@@ -86,6 +90,40 @@ class ProtoModel(BaseModel):
     else:
       raise ValueError(f"Unsupported value type: {annotation}")
 
+  def encode_list(self,key, value, annotation, output: BytesIO):
+    """Encode a list of values."""
+    inner_type = get_args(annotation)[0]
+    for item in value:
+      _EncodeVarint(output.write, key)
+      self._encode_value(item, inner_type, output)
+    
+  def endode_dict(self, key,  value, annotation, output: BytesIO):
+    """Encode a dictionary of key-value pairs."""
+    key_type, value_type = get_args(annotation)
+    key_key = (1 << 3) | self.get_wiretype_for_annotation(key_type)
+    value_key = (2 << 3) | self.get_wiretype_for_annotation(value_type)
+    for dict_key, dict_value in value.items():
+      _EncodeVarint(output.write, key)
+      item_output = BytesIO()
+      _EncodeVarint(item_output.write, key_key)
+      self._encode_value(dict_key, key_type, item_output)
+      _EncodeVarint(item_output.write, value_key)
+      self._encode_value(dict_value, value_type, item_output)
+      item_bytes = item_output.getvalue()
+      _EncodeVarint(output.write, len(item_bytes))
+      output.write(item_bytes)
+
+  def encode_field(self, field_number: int, value, annotation, output: BytesIO):
+    """Encode a single field with its key and value."""
+    key = self.build_key(field_number, annotation)
+    if get_origin(annotation) is list:
+      self.encode_list(key, value, annotation, output)
+    elif get_origin(annotation) is dict:
+      self.endode_dict(key, value, annotation, output)
+    else:
+      _EncodeVarint(output.write, key)
+      self._encode_value(value, annotation, output)
+
   def model_dump_proto(self) -> bytes:
     """Serialize the Pydantic model to protobuf bytes."""
     output = BytesIO()
@@ -104,17 +142,7 @@ class ProtoModel(BaseModel):
         field_number += 1
         continue
 
-      wt = self.get_wiretype_for_field(field)
-      key = (field_number << 3) | wt
-
-      if get_origin(field.annotation) is list:
-        inner_type = get_args(field.annotation)[0]
-        for item in value:
-          _EncodeVarint(output.write, key)
-          self._encode_value(item, inner_type, output)
-      else:
-        _EncodeVarint(output.write, key)
-        self._encode_value(value, field.annotation, output)
+      self.encode_field(field_number, value, field.annotation, output)
 
       field_number += 1
 
@@ -164,6 +192,7 @@ class ProtoModel(BaseModel):
         anns = [ann for ann in anns if ann is not type(None)]
         if len(anns) == 1:
           annotation = anns[0]
+
           origin = get_origin(annotation)
 
       # Parse based on wire type
@@ -187,7 +216,49 @@ class ProtoModel(BaseModel):
           if isinstance(inner_type, type) and issubclass(inner_type, ProtoModel):
             value = inner_type.model_validate_proto(data_bytes)
           else:
-            value = data_bytes
+            value = data_bytes        
+        elif origin is dict:
+          # Map entry - parse key and value fields
+          key_type, value_type = get_args(annotation)
+          entry_stream = BytesIO(data_bytes)
+          entry_key = None
+          entry_value = None
+          
+          while entry_stream.tell() < len(data_bytes):
+            entry_tag = cls._decode_varint(entry_stream)
+            entry_field_number = entry_tag >> 3
+            entry_wire_type = entry_tag & 0x07
+            
+            if entry_field_number == 1:  # Key field
+              if entry_wire_type == WIRETYPE_VARINT:
+                entry_key = cls._decode_varint(entry_stream)
+              elif entry_wire_type == WIRETYPE_LENGTH_DELIMITED:
+                key_length = cls._decode_varint(entry_stream)
+                key_bytes = entry_stream.read(key_length)
+                if key_type == str:
+                  entry_key = key_bytes.decode('utf-8')
+                else:
+                  entry_key = key_bytes
+            elif entry_field_number == 2:  # Value field
+              if entry_wire_type == WIRETYPE_VARINT:
+                entry_value = cls._decode_varint(entry_stream)
+                if value_type == bool:
+                  entry_value = bool(entry_value)
+              elif entry_wire_type == WIRETYPE_FIXED64:
+                entry_value = struct.unpack('<d', entry_stream.read(8))[0]
+              elif entry_wire_type == WIRETYPE_LENGTH_DELIMITED:
+                value_length = cls._decode_varint(entry_stream)
+                value_bytes = entry_stream.read(value_length)
+                if value_type == str:
+                  entry_value = value_bytes.decode('utf-8')
+                elif value_type == bytes:
+                  entry_value = value_bytes
+                elif isinstance(value_type, type) and issubclass(value_type, ProtoModel):
+                  entry_value = value_type.model_validate_proto(value_bytes)
+                else:
+                  entry_value = value_bytes
+          
+          value = (entry_key, entry_value)
         elif isinstance(annotation, type) and issubclass(annotation, ProtoModel):
           value = annotation.model_validate_proto(data_bytes)
         else:
@@ -195,11 +266,16 @@ class ProtoModel(BaseModel):
       else:
         raise ValueError(f"Unsupported wire type: {wire_type}")
 
-      # Handle repeated fields
+      # Handle repeated fields (lists and dicts)
       if origin is list:
         if field_name not in field_values:
           field_values[field_name] = []
         field_values[field_name].append(value)
+      elif origin is dict:
+        if field_name not in field_values:
+          field_values[field_name] = {}
+        entry_key, entry_value = value
+        field_values[field_name][entry_key] = entry_value
       else:
         field_values[field_name] = value
 

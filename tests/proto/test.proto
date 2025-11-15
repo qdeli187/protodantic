@@ -26,6 +26,7 @@ message Person {
     optional double salary = 8;
     repeated Contact contacts = 9;
     Status status = 10;
+    map<string, int32> skills = 11;
 }
 
 message Contact {

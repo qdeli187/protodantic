@@ -12,7 +12,7 @@ Here is the roadmap for this project. We are open to make changes based on commu
 - [x] Enum Support: Handle Python enums and protobuf enum types
 - [ ] Additional Scalar Types: `int32`, `int64`, `uint32`, `uint64`, `sint32`, `sint64`, `fixed32`, `fixed64`, `sfixed32`, `sfixed64`, `double` precision support
 - [ ] Oneof Fields: Support for protobuf's `oneof` pattern (mutually exclusive fields)
-- [ ] Map Types: Handle `dict` types as protobuf map fields
+- [x] Map Types: Handle `dict` types as protobuf map fields
 - [ ] Field Number Configuration: Allow explicit field number specification via Pydantic Field metadata
 - [ ] Circular Reference Handling: Better support for self-referencing and circular model dependencies
 - [ ] Packed Encoding: Automatic packed encoding for repeated scalar fields
