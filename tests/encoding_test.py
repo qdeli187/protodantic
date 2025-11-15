@@ -9,6 +9,7 @@ from protodantic.base import ProtoModel
 from .proto.test_pb2 import Address as PBAddress
 from .proto.test_pb2 import Contact as PBContact
 from .proto.test_pb2 import Person as PBPerson
+from .proto.test_pb2 import Status as PBStatus
 
 
 class Status(IntEnum):
@@ -38,6 +39,7 @@ class Person(ProtoModel):
     salary: float | None = None
     contacts : list[Contact] = []
     status: Status = Status.UNKNOWN
+    skills : dict[str, int] = {}
 
 @pytest.fixture
 def pb_contact():
@@ -58,7 +60,8 @@ def pb_person(pb_address, pb_contact):
         is_active=True,
         salary=55000.50,
         contacts=[pb_contact],
-        status=Status.ACTIVE.value
+        status=PBStatus.ACTIVE,
+        skills={"Python": 5, "C++": 4}
     )
     return person
 
@@ -81,7 +84,8 @@ def person(address, contact):
         is_active=True,
         salary=55000.50,
         contacts=[contact],
-        status=Status.ACTIVE
+        status=Status.ACTIVE,
+        skills={"Python": 5, "C++": 4}
     )
     return person
 
@@ -95,8 +99,26 @@ def test_address_serialization(address, pb_address):
 
 def test_person_serialization(person, pb_person):
     encoded = person.model_dump_proto()
-    expected = pb_person.SerializeToString()
-    assert encoded == expected
+    pb_parsed = PBPerson()
+    pb_parsed.ParseFromString(encoded)
+    
+    # Compare the deserialized objects instead of raw bytes
+    assert pb_parsed.name == pb_person.name
+    assert pb_parsed.age == pb_person.age
+    assert pb_parsed.email == pb_person.email
+    assert pb_parsed.address.street == pb_person.address.street
+    assert pb_parsed.address.city == pb_person.address.city
+    assert pb_parsed.address.zip_code == pb_person.address.zip_code
+    assert pb_parsed.hobbies == pb_person.hobbies
+    assert pb_parsed.is_active == pb_person.is_active
+    assert pb_parsed.salary == pb_person.salary
+    assert pb_parsed.status == pb_person.status
+    assert dict(pb_parsed.skills) == dict(pb_person.skills)  # Compare dict contents
+    assert len(pb_parsed.contacts) == len(pb_person.contacts)
+    for pb_contact, expected_contact in zip(pb_parsed.contacts, pb_person.contacts):
+        assert pb_contact.type == expected_contact.type
+        assert pb_contact.value == expected_contact.value
+        assert pb_contact.id == expected_contact.id
 
 def test_contact_1_2(contact):
     encoded = contact.model_dump_proto()
