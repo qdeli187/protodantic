@@ -90,6 +90,7 @@ assert restored_person == person  # ✅ Perfect match!
 | `ProtoModel` | Message | Nested objects |
 | `list[T]` | Repeated | `hobbies: ["reading", "gaming"]` |
 | `T \| None` | Optional | `phone: None` |
+| `dict[T1,T2]` | Map | `skills: {"python": 10}` |
 
 ## 📄 License
 
