@@ -456,6 +456,32 @@ decoded = Person.model_validate_proto(data)
 
 ---
 
+## 🔢 Protobuf Field Numbers
+
+By default , the field number will be the order in which the fields are placed in the model (starting from 1)
+
+```python
+from protodantic import ProtoModel
+
+class Person(ProtoModel):
+    name: str # will be 1
+    age: int # will be 2
+```
+
+But when you need to change your model , you might have to change the number of a field. To do so you can use the field annotation
+
+```python
+from protodantic import ProtoModel
+from pydantic import Field
+
+class Person(ProtoModel):
+    name: str # will be 1
+    age: int # will be 2
+    address: str = Field(json_schema_extra={"proto_index":19}) # will be 19
+```
+
+---
+
 ## ✅ Validation and Error Handling
 
 Pydantic automatically validates your data when creating instances:

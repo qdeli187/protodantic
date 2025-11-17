@@ -13,6 +13,8 @@ from google.protobuf.internal.wire_format import (WIRETYPE_FIXED32,
                                                   WIRETYPE_LENGTH_DELIMITED,
                                                   WIRETYPE_VARINT)
 from pydantic import BaseModel
+from pydantic.fields import FieldInfo
+from pydantic.config import JsonDict
 
 class ProtoModel(BaseModel):
 
@@ -124,27 +126,35 @@ class ProtoModel(BaseModel):
       _EncodeVarint(output.write, key)
       self._encode_value(value, annotation, output)
 
+  @classmethod
+  def create_proto_map(cls) -> dict[int, dict]:
+    proto_map : dict[int,dict] = {}
+    default_index = 1
+    for field_name, field in cls.model_fields.items():
+      if isinstance(field.json_schema_extra,dict):
+        if (index_override := field.json_schema_extra.get("proto_index")) is not None:
+          proto_map[index_override] = {"name":field_name,"infos":field} # type: ignore
+      else:
+        proto_map[default_index] = {"name":field_name,"infos":field}
+      default_index += 1
+    return proto_map
+
   def model_dump_proto(self) -> bytes:
     """Serialize the Pydantic model to protobuf bytes."""
     output = BytesIO()
-    field_number = 1
 
-    for field_name, field in self.model_fields.items():
+    for field_number, field in self.create_proto_map().items():
+      field_name , field = field['name'] , field['infos']
       value = getattr(self, field_name)
 
       # Skip None values for optional fields
       if value is None:
-        field_number += 1
         continue
 
       # Skip default values for optional fields
       if not field.is_required() and value == field.default:
-        field_number += 1
         continue
-
       self.encode_field(field_number, value, field.annotation, output)
-
-      field_number += 1
 
     return output.getvalue()
 
@@ -176,13 +186,12 @@ class ProtoModel(BaseModel):
       field_number = tag >> 3
       wire_type = tag & 0x07
 
-      # Get field name from field number (1-indexed)
-      field_names = list(cls.model_fields.keys())
-      if field_number - 1 >= len(field_names):
+      proto_map = cls.create_proto_map()
+      if field_number not in proto_map:
         raise ValueError(f"Unknown field number: {field_number}")
 
-      field_name = field_names[field_number - 1]
-      field = cls.model_fields[field_name]
+      field_name = proto_map[field_number]['name']
+      field = proto_map[field_number]['infos']
       annotation = field.annotation
       origin = get_origin(annotation)
 
@@ -274,7 +283,7 @@ class ProtoModel(BaseModel):
       elif origin is dict:
         if field_name not in field_values:
           field_values[field_name] = {}
-        entry_key, entry_value = value
+        entry_key, entry_value = value # type: ignore
         field_values[field_name][entry_key] = entry_value
       else:
         field_values[field_name] = value

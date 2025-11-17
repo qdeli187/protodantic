@@ -5,6 +5,7 @@ from enum import Enum, IntEnum
 import pytest
 
 from protodantic.base import ProtoModel
+from pydantic import Field
 
 from .proto.test_pb2 import Address as PBAddress
 from .proto.test_pb2 import Contact as PBContact
@@ -19,7 +20,7 @@ class Status(IntEnum):
     PENDING = 3
 
 class Address(ProtoModel):
-    street: str
+    street: str = Field()
     city: str
     zipcode: str
 
@@ -32,7 +33,7 @@ class Person(ProtoModel):
     name: str
     age: int
     email: str
-    phone: str | None = None
+    phone: str | None = Field(default=None,json_schema_extra={"proto_index":19})
     address: Address
     hobbies: list[str] = []
     is_active: bool
@@ -54,6 +55,7 @@ def pb_person(pb_address, pb_contact):
     person = PBPerson(
         name="John Doe",
         age=30,
+        phone="555-1234",
         email="test@example.com",
         address=pb_address,
         hobbies=["reading", "gaming"],
@@ -78,6 +80,7 @@ def person(address, contact):
     person = Person(
         name="John Doe",
         age=30,
+        phone="555-1234",
         email="test@example.com",
         address=address,
         hobbies=["reading", "gaming"],
@@ -99,6 +102,7 @@ def test_address_serialization(address, pb_address):
 
 def test_person_serialization(person, pb_person):
     encoded = person.model_dump_proto()
+    expected = pb_person.SerializeToString()
     pb_parsed = PBPerson()
     pb_parsed.ParseFromString(encoded)
     
@@ -113,6 +117,7 @@ def test_person_serialization(person, pb_person):
     assert pb_parsed.is_active == pb_person.is_active
     assert pb_parsed.salary == pb_person.salary
     assert pb_parsed.status == pb_person.status
+    assert pb_parsed.phone == pb_person.phone
     assert dict(pb_parsed.skills) == dict(pb_person.skills)  # Compare dict contents
     assert len(pb_parsed.contacts) == len(pb_person.contacts)
     for pb_contact, expected_contact in zip(pb_parsed.contacts, pb_person.contacts):
@@ -149,6 +154,7 @@ def test_person_1_2(person):
     assert pb_person.hobbies == person.hobbies
     assert pb_person.is_active == person.is_active
     assert pb_person.salary == person.salary
+    assert pb_person.phone == person.phone
     assert len(pb_person.contacts) == len(person.contacts)
     for pb_contact, contact in zip(pb_person.contacts, person.contacts):
         assert pb_contact.type == contact.type

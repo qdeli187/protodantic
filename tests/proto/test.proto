@@ -19,8 +19,8 @@ message Person {
     string name = 1;
     int32 age = 2;
     string email = 3;
-    optional string phone = 4;
     Address address = 5;
+    optional string phone = 19;
     repeated string hobbies = 6;
     bool is_active = 7;
     optional double salary = 8;

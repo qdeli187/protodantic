@@ -29,7 +29,7 @@ class Address(_message.Message):
     def __init__(self, street: _Optional[str] = ..., city: _Optional[str] = ..., zip_code: _Optional[str] = ...) -> None: ...
 
 class Person(_message.Message):
-    __slots__ = ("name", "age", "email", "phone", "address", "hobbies", "is_active", "salary", "contacts", "status", "skills")
+    __slots__ = ("name", "age", "email", "address", "phone", "hobbies", "is_active", "salary", "contacts", "status", "skills")
     class SkillsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -40,8 +40,8 @@ class Person(_message.Message):
     NAME_FIELD_NUMBER: _ClassVar[int]
     AGE_FIELD_NUMBER: _ClassVar[int]
     EMAIL_FIELD_NUMBER: _ClassVar[int]
-    PHONE_FIELD_NUMBER: _ClassVar[int]
     ADDRESS_FIELD_NUMBER: _ClassVar[int]
+    PHONE_FIELD_NUMBER: _ClassVar[int]
     HOBBIES_FIELD_NUMBER: _ClassVar[int]
     IS_ACTIVE_FIELD_NUMBER: _ClassVar[int]
     SALARY_FIELD_NUMBER: _ClassVar[int]
@@ -51,15 +51,15 @@ class Person(_message.Message):
     name: str
     age: int
     email: str
-    phone: str
     address: Address
+    phone: str
     hobbies: _containers.RepeatedScalarFieldContainer[str]
     is_active: bool
     salary: float
     contacts: _containers.RepeatedCompositeFieldContainer[Contact]
     status: Status
     skills: _containers.ScalarMap[str, int]
-    def __init__(self, name: _Optional[str] = ..., age: _Optional[int] = ..., email: _Optional[str] = ..., phone: _Optional[str] = ..., address: _Optional[_Union[Address, _Mapping]] = ..., hobbies: _Optional[_Iterable[str]] = ..., is_active: bool = ..., salary: _Optional[float] = ..., contacts: _Optional[_Iterable[_Union[Contact, _Mapping]]] = ..., status: _Optional[_Union[Status, str]] = ..., skills: _Optional[_Mapping[str, int]] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., age: _Optional[int] = ..., email: _Optional[str] = ..., address: _Optional[_Union[Address, _Mapping]] = ..., phone: _Optional[str] = ..., hobbies: _Optional[_Iterable[str]] = ..., is_active: bool = ..., salary: _Optional[float] = ..., contacts: _Optional[_Iterable[_Union[Contact, _Mapping]]] = ..., status: _Optional[_Union[Status, str]] = ..., skills: _Optional[_Mapping[str, int]] = ...) -> None: ...
 
 class Contact(_message.Message):
     __slots__ = ("id", "type", "value")

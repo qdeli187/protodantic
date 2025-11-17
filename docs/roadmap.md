@@ -13,11 +13,10 @@ Here is the roadmap for this project. We are open to make changes based on commu
 - [ ] Additional Scalar Types: `int32`, `int64`, `uint32`, `uint64`, `sint32`, `sint64`, `fixed32`, `fixed64`, `sfixed32`, `sfixed64`, `double` precision support
 - [ ] Oneof Fields: Support for protobuf's `oneof` pattern (mutually exclusive fields)
 - [x] Map Types: Handle `dict` types as protobuf map fields
-- [ ] Field Number Configuration: Allow explicit field number specification via Pydantic Field metadata
+- [x] Field Number Configuration: Allow explicit field number specification via Pydantic Field metadata
 - [ ] Circular Reference Handling: Better support for self-referencing and circular model dependencies
 - [ ] Packed Encoding: Automatic packed encoding for repeated scalar fields
 - [ ] Protoc plugin for this lib: Generate pydantic classes from `.proto` files
-- [ ] Default Values: Proper handling of protobuf default values (current naive approach does work though)
 - [ ] Unknown Field Handling: Gracefully handle fields in the binary data that don't exist in the model
 - [ ] Streaming Support: Large message serialization/deserialization with streaming
 
